@@ -1,13 +1,10 @@
-Netty In Action
-====
+#Netty In Action
+<br>
 
+##1. Java BIO
+<br>
 
-
-Java Network BIO
-----
-
-
-####使用例子
+####1.1 使用例子
 
 ```java
 ServerSocket serverSocket = new ServerSocket(portNumber);
@@ -25,9 +22,9 @@ while ((request = in.readLine()) != null) {
     out.println(response);
 }
 ```
+<br>
 
-
-####主要流程
+####1.2 主要流程
 
 1. 创建ServerSocket, 监听某一端口.
 
@@ -38,7 +35,7 @@ while ((request = in.readLine()) != null) {
 4. close.
 
 
-####主要问题
+####1.3 主要问题
 
 1. 每个客户端过来, 都需要单独的线程来处理, JVM每个线程需要64KB~1M的内存, 处理大量客户端需要大量的线程来支持.
 
@@ -47,7 +44,7 @@ while ((request = in.readLine()) != null) {
 3. 大量的客户端 -> 大量的线程 -> 大量的读写 -> 大量的阻塞与唤醒 -> 内存消耗大, 上下文切换多, 线程调度慢, 资源利用低.
 
 
-####总结
+####1.4 总结
 
 1. Java BIO 阻塞的方式, 代码简单, 逻辑清晰, 适合客户端数量不大的情况下使用.
 
