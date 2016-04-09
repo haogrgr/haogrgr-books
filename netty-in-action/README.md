@@ -1,8 +1,83 @@
 Netty In Action
-===
+====
 
 
 
+Java Network BIO
+----
+
+
+####使用例子
+
+```java
+ServerSocket serverSocket = new ServerSocket(portNumber);
+Socket clientSocket = serverSocket.accept();
+
+BufferedReader in = new BufferedReader(new InputStreamReade(clientSocket.getInputStream()));
+PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+String request, response;
+while ((request = in.readLine()) != null) {
+    if ("Done".equals(request) (
+        break;
+    }
+    response = processRequest(request);
+    out.println(response);
+}
+```
+
+
+####主要流程
+
+1. 创建ServerSocket, 监听某一端口.
+
+2. 调用ServerSocket.accept()接受客户端链接, 获取客户端Socket对象, 注意accept是阻塞方法.
+
+3. 一般会创建新的线程来接收客户端发来的数据, 或者向客户端发送数据, 通过对客户端Socket关联的流来读写.
+
+4. close.
+
+
+####主要问题
+
+1. 每个客户端过来, 都需要单独的线程来处理, JVM每个线程需要64KB~1M的内存, 处理大量客户端需要大量的线程来支持.
+
+2. 大量的线程需要更多的内存支持, 且线程数量越多, 线程上下文切换的消耗越大.
+
+3. 大量的客户端 -> 大量的线程 -> 大量的读写 -> 大量的阻塞与唤醒 -> 内存消耗大, 上下文切换多, 线程调度慢, 资源利用低.
+
+
+####总结
+
+1. Java BIO 阻塞的方式, 代码简单, 逻辑清晰, 适合客户端数量不大的情况下使用.
+
+    
+Java Network NIO
+----
+
+* 核心概念
+		将原本
+
+* 一般使用流程
+	1. 
+
+[Netty](http://netty.io/)是什么
+----
+
+		Netty是使用Java开发基于事件驱动的异步网络编程框架用于帮助开发者快速方便的构建高性能的网络应用.
+
+
+
+
+为什么高性能, 如何实现高性能的
+
+怎样实现事件驱动的
+
+核心组建
+
+构建流程(客户端, 服务端)
+
+安全 SSL/TLS
 
 
 
