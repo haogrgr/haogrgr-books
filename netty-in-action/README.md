@@ -1,41 +1,49 @@
 #Netty In Action
-<br>
 
+		读书笔记, 以及Netty源码阅读笔记.
+
+
+
+
+<br>
 ##1. Java BIO
-<br>
 
+<br>
 ####1.1 使用例子
 
 ```java
-ServerSocket serverSocket = new ServerSocket(portNumber);
-Socket clientSocket = serverSocket.accept();
-
-BufferedReader in = new BufferedReader(new InputStreamReade(clientSocket.getInputStream()));
-PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-
-String request, response;
-while ((request = in.readLine()) != null) {
-    if ("Done".equals(request) (
-        break;
-    }
-    response = processRequest(request);
-    out.println(response);
+final ServerSocket socket = new ServerSocket(port);
+try {
+	for (;;) {
+		final Socket clientSocket = socket.accept();
+		System.out.println("Accepted connection from " + clientSocket);
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				OutputStream out;
+				try {
+					out = clientSocket.getOutputStream();
+					out.write("Hi!\r\n".getBytes(Charset.forName("UTF-8")));
+					out.flush();
+					clientSocket.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					try {
+						clientSocket.close();
+					} catch (IOException ex) {
+					}
+				}
+			}
+		}).start();
+	}
+} catch (IOException e) {
+	e.printStackTrace();
 }
 ```
+
 <br>
-
-####1.2 主要流程
-
-1. 创建ServerSocket, 监听某一端口.
-
-2. 调用ServerSocket.accept()接受客户端链接, 获取客户端Socket对象, 注意accept是阻塞方法.
-
-3. 一般会创建新的线程来接收客户端发来的数据, 或者向客户端发送数据, 通过对客户端Socket关联的流来读写.
-
-4. close.
-
-
-####1.3 主要问题
+####1.2 主要问题
 
 1. 每个客户端过来, 都需要单独的线程来处理, JVM每个线程需要64KB~1M的内存, 处理大量客户端需要大量的线程来支持.
 
@@ -43,12 +51,86 @@ while ((request = in.readLine()) != null) {
 
 3. 大量的客户端 -> 大量的线程 -> 大量的读写 -> 大量的阻塞与唤醒 -> 内存消耗大, 上下文切换多, 线程调度慢, 资源利用低.
 
-
-####1.4 总结
+<br>
+####1.3 总结
 
 1. Java BIO 阻塞的方式, 代码简单, 逻辑清晰, 适合客户端数量不大的情况下使用.
 
-    
+
+
+
+<br>
+##2. Java BIO
+
+####2.1 使用例子
+
+```java
+ServerSocketChannel serverChannel = ServerSocketChannel.open();
+serverChannel.configureBlocking(false);
+
+ServerSocket ssocket = serverChannel.socket();
+ssocket.bind(new InetSocketAddress(port));
+
+Selector selector = Selector.open();
+serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+
+final ByteBuffer msg = ByteBuffer.wrap("Hi!\r\n".getBytes());
+for (;;) {
+	try {
+		selector.select();
+	} catch (IOException ex) {
+		ex.printStackTrace();
+		// handle exception
+		break;
+	}
+
+	Set<SelectionKey> readyKeys = selector.selectedKeys();
+	Iterator<SelectionKey> iterator = readyKeys.iterator();
+	while (iterator.hasNext()) {
+		SelectionKey key = iterator.next();
+		iterator.remove();
+		try {
+			if (key.isAcceptable()) {
+				ServerSocketChannel server = (ServerSocketChannel) key.channel();
+				SocketChannel client = server.accept();
+				client.configureBlocking(false);
+				client.register(selector, SelectionKey.OP_WRITE | SelectionKey.OP_READ, msg.duplicate());
+				System.out.println("Accepted connection from " + client);
+			}
+			if (key.isWritable()) {
+				SocketChannel client = (SocketChannel) key.channel();
+				ByteBuffer buffer = (ByteBuffer) key.attachment();
+				while (buffer.hasRemaining()) {
+					if (client.write(buffer) == 0) {
+						break;
+					}
+				}
+				client.close();
+			}
+		} catch (IOException ex) {
+			key.cancel();
+			try {
+				key.channel().close();
+			} catch (IOException cex) {
+				// ignore on close
+			}
+		}
+	}
+}
+```
+
+<br>
+####2.2 主要问题
+
+1. 逻辑复杂, 代码复杂, 容易出BUG.
+
+<br>
+####2.3 总结
+
+1. 高性能, 使用一个专门的线程来轮询各种事件, 将BIO中分散到各个线程中的等待集中起来轮询, 
+
+
+
 Java Network NIO
 ----
 
