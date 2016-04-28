@@ -9,29 +9,28 @@
 
 	<fileSets>
 		<fileSet>
-			<directory>src/main/bin</directory>
-			<outputDirectory>/bin</outputDirectory>
+			<directory>src/main/bin/${env}</directory>
+			<outputDirectory>bin</outputDirectory>
 			<fileMode>0755</fileMode>
 			<filtered>true</filtered>
 		</fileSet>
 
 		<fileSet>
 			<directory>src/main/conf/${env}</directory>
-			<outputDirectory>/conf</outputDirectory>
+			<outputDirectory>conf</outputDirectory>
 		</fileSet>
 	</fileSets>
 
 	<files>
 		<file>
 			<source>README.md</source>
-			<outputDirectory>/</outputDirectory>
 			<filtered>true</filtered>
 		</file>
 	</files>
 
 	<dependencySets>
 		<dependencySet>
-			<outputDirectory>/lib</outputDirectory>
+			<outputDirectory>lib</outputDirectory>
 			<scope>runtime</scope>
 		</dependencySet>
 	</dependencySets>
